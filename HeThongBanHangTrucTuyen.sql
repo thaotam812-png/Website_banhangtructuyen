@@ -1,145 +1,150 @@
-CREATE DATABASE HeThongBanHangTrucTuyen;
-GO
+CREATE DATABASE HeThongBanHangTrucTuyen CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE HeThongBanHangTrucTuyen;
-GO
-
 
 CREATE TABLE TaiKhoan (
-    taiKhoanID INT IDENTITY(1,1) PRIMARY KEY,
-    tenDangNhap NVARCHAR(50) NOT NULL UNIQUE,
-    matKhau NVARCHAR(255) NOT NULL,
-    vaiTro NVARCHAR(20) CHECK (vaiTro IN (N'KhachHang', N'NhanVien', N'Admin')) NOT NULL,
-    ngayTao DATETIME DEFAULT GETDATE()
+    taiKhoanID INT AUTO_INCREMENT PRIMARY KEY,
+    tenDangNhap VARCHAR(50) NOT NULL UNIQUE,
+    matKhau VARCHAR(255) NOT NULL,
+    vaiTro VARCHAR(20) NOT NULL,
+    ngayTao DATETIME DEFAULT NOW(),
+    CHECK (vaiTro IN ('KhachHang', 'NhanVien', 'Admin'))
 );
 
 CREATE TABLE KhachHang (
-    khachHangID INT IDENTITY(1,1) PRIMARY KEY,
-    hoTen NVARCHAR(100) NOT NULL,
-    email NVARCHAR(100) UNIQUE,
-    soDienThoai NVARCHAR(20),
-    diaChi NVARCHAR(255),
-    taiKhoanID INT REFERENCES TaiKhoan(taiKhoanID) ON DELETE CASCADE
+    khachHangID INT AUTO_INCREMENT PRIMARY KEY,
+    hoTen VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    soDienThoai VARCHAR(20),
+    diaChi VARCHAR(255),
+    taiKhoanID INT,
+    FOREIGN KEY (taiKhoanID) REFERENCES TaiKhoan(taiKhoanID) ON DELETE CASCADE
 );
 
 CREATE TABLE NhanVien (
-    nhanVienID INT IDENTITY(1,1) PRIMARY KEY,
-    hoTen NVARCHAR(100),
-    chucVu NVARCHAR(50),
+    nhanVienID INT AUTO_INCREMENT PRIMARY KEY,
+    hoTen VARCHAR(100),
+    chucVu VARCHAR(50),
     luong DECIMAL(12,2),
-    taiKhoanID INT REFERENCES TaiKhoan(taiKhoanID) ON DELETE CASCADE
+    taiKhoanID INT,
+    FOREIGN KEY (taiKhoanID) REFERENCES TaiKhoan(taiKhoanID) ON DELETE CASCADE
 );
 
 CREATE TABLE SanPham (
-    sanPhamID INT IDENTITY(1,1) PRIMARY KEY,
-    tenSanPham NVARCHAR(100) NOT NULL,
-    moTa NVARCHAR(255),
+    sanPhamID INT AUTO_INCREMENT PRIMARY KEY,
+    tenSanPham VARCHAR(100) NOT NULL,
+    moTa VARCHAR(255),
     donGia DECIMAL(10,2) NOT NULL,
     soLuongTon INT DEFAULT 0,
-    hinhAnh NVARCHAR(255),
-    danhMuc NVARCHAR(100)
+    hinhAnh VARCHAR(255),
+    danhMuc VARCHAR(100)
 );
 
 CREATE TABLE DonHang (
-    donHangID INT IDENTITY(1,1) PRIMARY KEY,
-    khachHangID INT REFERENCES KhachHang(khachHangID),
-    ngayDatHang DATETIME DEFAULT GETDATE(),
+    donHangID INT AUTO_INCREMENT PRIMARY KEY,
+    khachHangID INT,
+    ngayDatHang DATETIME DEFAULT NOW(),
     tongTien DECIMAL(12,2),
-    trangThai NVARCHAR(50) CHECK (trangThai IN (N'Chờ xử lý', N'Đã giao', N'Đã hủy')) DEFAULT N'Chờ xử lý'
+    trangThai VARCHAR(50) DEFAULT 'Chờ xử lý',
+    CHECK (trangThai IN ('Chờ xử lý', 'Đã giao', 'Đã hủy')),
+    FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID)
 );
 
 CREATE TABLE ChiTietDonHang (
-    chiTietID INT IDENTITY(1,1) PRIMARY KEY,
-    donHangID INT REFERENCES DonHang(donHangID) ON DELETE CASCADE,
-    sanPhamID INT REFERENCES SanPham(sanPhamID),
+    chiTietID INT AUTO_INCREMENT PRIMARY KEY,
+    donHangID INT,
+    sanPhamID INT,
     soLuong INT NOT NULL,
-    donGia DECIMAL(10,2) NOT NULL
+    donGia DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (donHangID) REFERENCES DonHang(donHangID) ON DELETE CASCADE,
+    FOREIGN KEY (sanPhamID) REFERENCES SanPham(sanPhamID)
 );
 
 CREATE TABLE ThanhToan (
-    thanhToanID INT IDENTITY(1,1) PRIMARY KEY,
-    donHangID INT REFERENCES DonHang(donHangID),
-    phuongThuc NVARCHAR(50),
-    ngayThanhToan DATETIME DEFAULT GETDATE(),
-    trangThai NVARCHAR(50) CHECK (trangThai IN (N'Thành công', N'Thất bại', N'Chờ xử lý'))
+    thanhToanID INT AUTO_INCREMENT PRIMARY KEY,
+    donHangID INT,
+    phuongThuc VARCHAR(50),
+    ngayThanhToan DATETIME DEFAULT NOW(),
+    trangThai VARCHAR(50),
+    CHECK (trangThai IN ('Thành công', 'Thất bại', 'Chờ xử lý')),
+    FOREIGN KEY (donHangID) REFERENCES DonHang(donHangID)
 );
 
--- Bảng danh mục chi tiết
 CREATE TABLE DanhMuc (
-    danhMucID INT IDENTITY(1,1) PRIMARY KEY,
-    tenDanhMuc NVARCHAR(100) NOT NULL, -- Áo sơ mi, Quần jean, Phụ kiện...
-    moTa NVARCHAR(255),
-    danhMucCha INT REFERENCES DanhMuc(danhMucID)
+    danhMucID INT AUTO_INCREMENT PRIMARY KEY,
+    tenDanhMuc VARCHAR(100) NOT NULL,
+    moTa VARCHAR(255),
+    danhMucCha INT,
+    FOREIGN KEY (danhMucCha) REFERENCES DanhMuc(danhMucID)
 );
 
--- Bảng chi tiết sản phẩm (size, màu)
 CREATE TABLE ChiTietSanPham (
-    chiTietSPID INT IDENTITY(1,1) PRIMARY KEY,
-    sanPhamID INT REFERENCES SanPham(sanPhamID),
-    size NVARCHAR(10), -- S, M, L, XL, XXL
-    mauSac NVARCHAR(50), -- Đen, Trắng, Xanh...
-    soLuongTon INT DEFAULT 0
+    chiTietSPID INT AUTO_INCREMENT PRIMARY KEY,
+    sanPhamID INT,
+    size VARCHAR(10),
+    mauSac VARCHAR(50),
+    soLuongTon INT DEFAULT 0,
+    FOREIGN KEY (sanPhamID) REFERENCES SanPham(sanPhamID)
 );
 
--- Bảng đánh giá sản phẩm
 CREATE TABLE DanhGia (
-    danhGiaID INT IDENTITY(1,1) PRIMARY KEY,
-    sanPhamID INT REFERENCES SanPham(sanPhamID),
-    khachHangID INT REFERENCES KhachHang(khachHangID),
-    soSao INT CHECK (soSao BETWEEN 1 AND 5),
-    binhLuan NVARCHAR(500),
-    ngayDanhGia DATETIME DEFAULT GETDATE()
+    danhGiaID INT AUTO_INCREMENT PRIMARY KEY,
+    sanPhamID INT,
+    khachHangID INT,
+    soSao INT,
+    binhLuan VARCHAR(500),
+    ngayDanhGia DATETIME DEFAULT NOW(),
+    CHECK (soSao BETWEEN 1 AND 5),
+    FOREIGN KEY (sanPhamID) REFERENCES SanPham(sanPhamID),
+    FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID)
 );
 
--- Bảng giỏ hàng
 CREATE TABLE GioHang (
-    gioHangID INT IDENTITY(1,1) PRIMARY KEY,
-    khachHangID INT REFERENCES KhachHang(khachHangID),
-    sanPhamID INT REFERENCES SanPham(sanPhamID),
-    chiTietSPID INT REFERENCES ChiTietSanPham(chiTietSPID),
+    gioHangID INT AUTO_INCREMENT PRIMARY KEY,
+    khachHangID INT,
+    sanPhamID INT,
+    chiTietSPID INT,
     soLuong INT NOT NULL,
-    ngayThem DATETIME DEFAULT GETDATE()
+    ngayThem DATETIME DEFAULT NOW(),
+    FOREIGN KEY (khachHangID) REFERENCES KhachHang(khachHangID),
+    FOREIGN KEY (sanPhamID) REFERENCES SanPham(sanPhamID),
+    FOREIGN KEY (chiTietSPID) REFERENCES ChiTietSanPham(chiTietSPID)
 );
 
--- Bảng khuyến mãi/voucher
 CREATE TABLE KhuyenMai (
-    khuyenMaiID INT IDENTITY(1,1) PRIMARY KEY,
-    maCode NVARCHAR(20) UNIQUE,
+    khuyenMaiID INT AUTO_INCREMENT PRIMARY KEY,
+    maCode VARCHAR(20) UNIQUE,
     phanTramGiam DECIMAL(5,2),
     giaTriGiamToiDa DECIMAL(10,2),
     ngayBatDau DATETIME,
     ngayKetThuc DATETIME,
     soLuotDung INT DEFAULT 0
 );
--- DỮ LIỆU MẪU
 
 INSERT INTO TaiKhoan (tenDangNhap, matKhau, vaiTro) VALUES
-(N'khach1', N'123456', N'KhachHang'),
-(N'admin1', N'admin@123', N'Admin'),
-(N'nhanvien1', N'passnv', N'NhanVien');
+('khach1', '123456', 'KhachHang'),
+('admin1', 'admin@123', 'Admin'),
+('nhanvien1', 'passnv', 'NhanVien');
 
 INSERT INTO KhachHang (hoTen, email, soDienThoai, diaChi, taiKhoanID) VALUES
-(N'Nguyễn Văn A', N'a@gmail.com', N'0901234567', N'Hà Nội', 1);
+('Nguyễn Văn A', 'a@gmail.com', '0901234567', 'Hà Nội', 1);
 
 INSERT INTO NhanVien (hoTen, chucVu, luong, taiKhoanID) VALUES
-(N'Trần Thị B', N'Bán hàng', 8000000, 3);
+('Trần Thị B', 'Bán hàng', 8000000, 3);
 
 INSERT INTO SanPham (tenSanPham, moTa, donGia, soLuongTon, hinhAnh, danhMuc) VALUES
-(N'Cà phê sữa', N'Cà phê sữa đá đậm vị', 25000, 100, N'cafe-sua.jpg', N'Đồ uống'),
-(N'Trà đào', N'Trà đào cam sả tươi mát', 30000, 50, N'tra-dao.jpg', N'Đồ uống');
+('Cà phê sữa', 'Cà phê sữa đá đậm vị', 25000, 100, 'cafe-sua.jpg', 'Đồ uống'),
+('Trà đào', 'Trà đào cam sả tươi mát', 30000, 50, 'tra-dao.jpg', 'Đồ uống');
 
 INSERT INTO DonHang (khachHangID, tongTien, trangThai) VALUES
-(1, 55000, N'Chờ xử lý');
+(1, 55000, 'Chờ xử lý');
 
 INSERT INTO ChiTietDonHang (donHangID, sanPhamID, soLuong, donGia) VALUES
 (1, 1, 1, 25000),
 (1, 2, 1, 30000);
 
 INSERT INTO ThanhToan (donHangID, phuongThuc, trangThai) VALUES
-(1, N'Thanh toán khi nhận hàng', N'Chờ xử lý');
-GO
+(1, 'Thanh toán khi nhận hàng', 'Chờ xử lý');
 
-
--- VIEW: Thông tin đơn hàng chi tiết
 CREATE VIEW view_DonHangChiTiet AS
 SELECT 
     dh.donHangID,
@@ -154,31 +159,32 @@ FROM DonHang dh
 JOIN KhachHang kh ON dh.khachHangID = kh.khachHangID
 JOIN ChiTietDonHang ctdh ON dh.donHangID = ctdh.donHangID
 JOIN SanPham sp ON ctdh.sanPhamID = sp.sanPhamID;
-GO
 
--- STORED PROCEDURE: Tạo đơn hàng mới
-CREATE PROCEDURE sp_TaoDonHang
-    @khachHangID INT,
-    @tongTien DECIMAL(12,2)
-AS
+DELIMITER //
+
+CREATE PROCEDURE sp_TaoDonHang (
+    IN khachHangID INT,
+    IN tongTien DECIMAL(12,2)
+)
 BEGIN
     INSERT INTO DonHang (khachHangID, tongTien, trangThai)
-    VALUES (@khachHangID, @tongTien, N'Chờ xử lý');
+    VALUES (khachHangID, tongTien, 'Chờ xử lý');
 
-    SELECT SCOPE_IDENTITY() AS maDonHangMoi;
+    SELECT LAST_INSERT_ID() AS maDonHangMoi;
 END;
-GO
+//
 
--- STORED PROCEDURE: Cập nhật trạng thái đơn hàng
-
-CREATE PROCEDURE sp_CapNhatTrangThaiDonHang
-    @donHangID INT,
-    @trangThai NVARCHAR(50)
-AS
+CREATE PROCEDURE sp_CapNhatTrangThaiDonHang (
+    IN donHangID INT,
+    IN trangThai VARCHAR(50)
+)
 BEGIN
     UPDATE DonHang
-    SET trangThai = @trangThai
-    WHERE donHangID = @donHangID;
+    SET trangThai = trangThai
+    WHERE donHangID = donHangID;
 END;
-GO
+//
+
+DELIMITER ;
+
 SELECT * FROM TaiKhoan;
